@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8B15A83D1EE74FA2004A3601 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B15A83C1EE74FA2004A3601 /* libsqlite3.tbd */; };
 		8B7AB61E1E9319A5009B1D0C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B7AB61D1E9319A5009B1D0C /* AppDelegate.swift */; };
 		8B7AB6201E9319A5009B1D0C /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B7AB61F1E9319A5009B1D0C /* ViewController.swift */; };
 		8B7AB6231E9319A5009B1D0C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8B7AB6211E9319A5009B1D0C /* Main.storyboard */; };
@@ -17,6 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8B15A83C1EE74FA2004A3601 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		8B7AB61A1E9319A5009B1D0C /* FLL_Robin_3.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FLL_Robin_3.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B7AB61D1E9319A5009B1D0C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		8B7AB61F1E9319A5009B1D0C /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -33,17 +35,27 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8B15A83D1EE74FA2004A3601 /* libsqlite3.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8B15A8361EE74AF5004A3601 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8B15A83C1EE74FA2004A3601 /* libsqlite3.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		8B7AB6111E9319A5009B1D0C = {
 			isa = PBXGroup;
 			children = (
 				8B7AB61C1E9319A5009B1D0C /* FLL_Robin_3 */,
 				8B7AB61B1E9319A5009B1D0C /* Products */,
+				8B15A8361EE74AF5004A3601 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -219,6 +231,8 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OBJC_BRIDGING_HEADER = "FLL_Robin_3-Bridging-Header.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "FLL_Robin_3-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -261,6 +275,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "FLL_Robin_3-Bridging-Header.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "FLL_Robin_3-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				VALIDATE_PRODUCT = YES;
 			};

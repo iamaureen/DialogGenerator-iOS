@@ -14,8 +14,8 @@
  *      - best method for student to interact with microphone? Currently button touch screen - rsearch speech API
  *
  * PENDING TO-DOs:
- *  (1) Fix speech synthesis thread issue (see comments below - maybe post on stack overflow)
- *  (2) Add SQL call to function getTextOfSpeech() - https://www.raywenderlich.com/123579/sqlite-tutorial-swift & http://codewithchris.com/iphone-app-connect-to-mysql-database/
+ *  (1) Fix speech synthesis thread issue (see comments below - maybe post on stack overflow) - done
+ *  (2) Add SQL call to function getTextOfSpeech() - https://www.raywenderlich.com/123579/sqlite-tutorial-swift & http://codewithchris.com/iphone-app-connect-to-mysql-database/ ; done
  *  (3) Setup call to Pandorabot API under return of transcript from function 'Start Recording' - should be able to use simple REST API calls to the Pandorabot API. Examples of calls with ios @ https://grokswift.com/simple-rest-with-swift/
  *  (4) Fix bug with the motion - doesn't always stop when the phone has stopped and sometimes stops earlier
  *  (5) Generate pretty waveform for when Robin is speaking (use pod? like maybe https://github.com/fulldecent/FDWaveformView or https://github.com/stefanceriu/SCSiriWaveformView ???)
@@ -32,6 +32,8 @@ import UIKit
 import AVFoundation
 import CoreMotion
 import Speech
+
+
 
 class ViewController: UIViewController, SFSpeechRecognizerDelegate{
 
@@ -56,6 +58,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     var movementDiff = 0.0
     var diffFromMean = 0.0
     var movingStarted = false
+    var databasePath:String!
     
     // Text to speech variables
     let synth = AVSpeechSynthesizer()
@@ -68,6 +71,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     private var recognitionTask: SFSpeechRecognitionTask?
     private let audioEngine = AVAudioEngine()
     
+   
     // When application first starts
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -85,22 +89,23 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             switch authStatus {  //5
             case .authorized:
                 isButtonEnabled = true
-                print("isButtonEnabled");
+                //print("isButtonEnabled");
                 
             case .denied:
                 isButtonEnabled = false
-                print("User denied access to speech recognition")
+                //print("User denied access to speech recognition")
                 
             case .restricted:
                 isButtonEnabled = false
-                print("Speech recognition restricted on this device")
+                //print("Speech recognition restricted on this device")
                 
             case .notDetermined:
                 isButtonEnabled = false
-                print("Speech recognition not yet authorized")
+               // print("Speech recognition not yet authorized")
             }
             
             OperationQueue.main.addOperation() {
+                //print("inside oq viewDidLoad() \(self.counter)")
                 self.TalkToRobinButton.isEnabled = isButtonEnabled
                 self.TalkToRobinButton.isHidden = true
             }
@@ -125,6 +130,8 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         speaking.text = ""                                       // robot not speaking so speaking field is blank
         textOfSpeech = getTextOfSpeech()                         // get the text to speech
         
+        print("speak this :: \(textOfSpeech)")
+        
         // Comment this out once if it works
         //self.synth.speak(self.myUtterance)
         
@@ -135,7 +142,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         
         motionManager.startAccelerometerUpdates(to: queue) {    // Start accelerometer
             (data, error) in
-            
+           
             self.outputAccelerationData(acceleration: (data?.acceleration)!)  // enable TalkToRobin button
             
         }
@@ -157,6 +164,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             firstTime = false
         }
         else {
+        
             // Option (1) - Calculating angle differences - not using this to detect movement stop
             let numerator = (lastx * acceleration.x) + (lasty * acceleration.y) + (lastz * acceleration.z)
             let denominator = sqrt(pow(lastx, 2.0)+pow(lasty,2.0)+pow(lastz,2))*sqrt(pow(acceleration.x, 2.0)+pow(acceleration.y,2.0)+pow(acceleration.z,2))
@@ -179,24 +187,30 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             else if (movingStarted){
                 if (counter > 15){
                     OperationQueue.main.addOperation {
+                        //print("inside oq if(counter>15) counter value:: \(self.counter)")
+                        self.counter=0 //here it works fine, why?
+                        
                         // Motion stop detected so play speech and enable talk
-                        self.speaking.text = "Play Audio!  \(OperationQueue().operationCount)"
+                        self.speaking.text = "Play Audio!"
                         self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
                         self.myUtterance.rate = 0.4
-                        
+                        //print("inside oq if(counter>15) line 189")
                         self.synth.speak(self.myUtterance)
                         self.TalkToRobinButton.isHidden = false
 
                         // Cease movement and reset tracking variables
                         self.movingStarted = false
                         self.motionManager.stopAccelerometerUpdates()
-                        self.counter = 0
+                        
                         //self.audioPlayer.play()
+                        //self.counter=0 //if counter value set to 0 here, it does not work properly
+                        
                     }
                 }
                 counter += 1
             }
             else {
+                
                 counter = 0
             }
             
@@ -225,9 +239,68 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     }
 
     // Turn this into a SQL Database call
+    //ref link: https://grokswift.com/simple-rest-with-swift/
     func getTextOfSpeech() -> String {
-        return "You are ALL awesome"
+        
+        let URL_GET = "http://192.168.1.7/api/product/read.php"
+       
+        
+        let requestURL = URL(string: URL_GET)
+        
+        var feedback_from_module = ""
+        
+        //create URL request
+        var request = URLRequest(url: requestURL!)
+        
+        //setting the method to GET
+        request.httpMethod = "GET"
+        
+        
+        //creating a task to send the get request
+        let task = URLSession.shared.dataTask(with: request){
+            data, response, error in
+            
+            //if data is nil or no
+            if(data != nil){
+                print("data is not empty :: \(data)")
+            }else{
+                print("data is empty")
+            }
+            
+            //exiting if there is some error
+            if error != nil{
+                print("error is \(error)")
+                return;
+            }
+            
+           
+            do {
+                
+                let parsedData = try JSONSerialization.jsonObject(with: data!) as! [String:AnyObject]
+                //print("after parsing data \(parsedData)")
+
+                let userData = parsedData["records"] as! [AnyObject]
+              
+                
+                for user in userData{
+                    feedback_from_module = user["errormsg"] as! String
+                    print("feedback :: \(feedback_from_module)")
+                }
+                
+              
+            } catch {
+                print("Error deserializing JSON: \(error)")
+            }
+            
+            
+        }
+        //executing the task
+        task.resume()
+        
+        //return "You are ALL awesome"
+        return feedback_from_module
     }
+ 
     
     
     @IBAction func TalkToRobinClick(_ sender: UIButton) {
@@ -246,6 +319,9 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     
     
     func startRecording(){
+        
+        
+        
         if recognitionTask != nil {
             recognitionTask?.cancel()
             recognitionTask = nil
@@ -278,10 +354,16 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             
             if result != nil {
                 
+                //setting textfield with the speech
                 self.speaking.text = result?.bestTranscription.formattedString
                 isFinal = (result?.isFinal)!
                 
                 // ******** CALL PANDORABOT API FROM HERE???? Get text of response and then set myutterance and play synthesis function
+                
+                
+                
+              
+                
             }
             
             if error != nil || isFinal {
