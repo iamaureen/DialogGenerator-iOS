@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FLL_Robin_3/ViewController.swift"
-            timestampString = "522228729.027071"
+            timestampString = "527757493.720841"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "145"
-            endingLineNumber = "145"
+            startingLineNumber = "151"
+            endingLineNumber = "151"
             landmarkName = "startButtonClick(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -26,11 +26,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FLL_Robin_3/ViewController.swift"
-            timestampString = "522228729.027071"
+            timestampString = "527757493.720841"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "165"
-            endingLineNumber = "165"
+            startingLineNumber = "171"
+            endingLineNumber = "171"
             landmarkName = "outputAccelerationData(acceleration:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -70,45 +70,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FLL_Robin_3/ViewController.swift"
-            timestampString = "527752101.980935"
+            timestampString = "527757898.221918"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "290"
-            endingLineNumber = "290"
-            landmarkName = "getTextOfSpeech()"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "FLL_Robin_3.ViewController.(getTextOfSpeech () -&gt; Swift.String).(closure #1)"
-                  moduleName = "FLL_Robin_3"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/heklerlab/Desktop/FLL_Robin_3/FLL_Robin_3/ViewController.swift"
-                  timestampString = "525225816.209382"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "287"
-                  endingLineNumber = "287"
-                  offsetFromSymbolStart = "3032">
-               </Location>
-               <Location
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "FLL_Robin_3.ViewController.(getTextOfSpeech () -&gt; Swift.String).(closure #1)"
-                  moduleName = "FLL_Robin_3"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/heklerlab/Desktop/FLL_Robin_3/FLL_Robin_3/ViewController.swift"
-                  timestampString = "525225816.211134"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "287"
-                  endingLineNumber = "287"
-                  offsetFromSymbolStart = "3436">
-               </Location>
-            </Locations>
+            startingLineNumber = "326"
+            endingLineNumber = "326"
+            landmarkName = "ViewController"
+            landmarkType = "3">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

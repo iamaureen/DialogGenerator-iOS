@@ -128,7 +128,13 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     // Action Button: When user clicks on the button, we (1) download text, (2) convert text to speech, (3) begin tracking movement and (4) play the audio when movement ceases
     @IBAction func startButtonClick(_ sender: UIButton) {
         speaking.text = ""                                       // robot not speaking so speaking field is blank
-        textOfSpeech = getTextOfSpeech()                         // get the text to speech
+        
+   //     textOfSpeech = getTextOfSpeech()                      // get the text to speech
+        
+       getTextOfSpeech(completion: {result in
+            print("returned from func :: \(result)")
+            self.textOfSpeech = result
+        })
         
         print("speak this :: \(textOfSpeech)")
         
@@ -194,7 +200,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
                         self.speaking.text = "Play Audio!"
                         self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
                         self.myUtterance.rate = 0.4
-                        //print("inside oq if(counter>15) line 189")
+                        print("I am here to speak :: \(self.textOfSpeech)")
                         self.synth.speak(self.myUtterance)
                         self.TalkToRobinButton.isHidden = false
 
@@ -240,65 +246,89 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
 
     // Turn this into a SQL Database call
     //ref link: https://grokswift.com/simple-rest-with-swift/
-    func getTextOfSpeech() -> String {
-        
+   /* func getTextOfSpeech() -> String {
         let URL_GET = "http://192.168.1.7/api/product/read.php"
-       
-        
         let requestURL = URL(string: URL_GET)
-        
         var feedback_from_module = ""
-        
         //create URL request
         var request = URLRequest(url: requestURL!)
-        
         //setting the method to GET
         request.httpMethod = "GET"
-        
-        
         //creating a task to send the get request
         let task = URLSession.shared.dataTask(with: request){
             data, response, error in
-            
             //if data is nil or no
             if(data != nil){
                 print("data is not empty :: \(data)")
             }else{
                 print("data is empty")
             }
-            
             //exiting if there is some error
             if error != nil{
                 print("error is \(error)")
                 return;
             }
-            
-           
             do {
-                
                 let parsedData = try JSONSerialization.jsonObject(with: data!) as! [String:AnyObject]
                 //print("after parsing data \(parsedData)")
-
                 let userData = parsedData["records"] as! [AnyObject]
-              
-                
                 for user in userData{
                     feedback_from_module = user["errormsg"] as! String
                     print("feedback :: \(feedback_from_module)")
                 }
-                
-              
             } catch {
                 print("Error deserializing JSON: \(error)")
             }
-            
-            
         }
         //executing the task
         task.resume()
         
-        //return "You are ALL awesome"
-        return feedback_from_module
+        return "You are ALL awesome"
+        //return feedback_from_module
+    } */
+    
+   //added completion handler to return data from the database
+     func getTextOfSpeech(completion: @escaping (_ feedback_from_module: String) -> ()) {
+        let URL_GET = "http://192.168.1.7/api/product/read.php"
+        let requestURL = URL(string: URL_GET)
+        var feedback_from_module=""
+        //create URL request
+        var request = URLRequest(url: requestURL!)
+        //setting the method to GET
+        request.httpMethod = "GET"
+        //creating a task to send the get request
+        let task = URLSession.shared.dataTask(with: request){
+            (data, response, error) in
+            //if data is nil or no
+            if(data != nil){
+                print("data is not empty :: \(data)")
+            }else{
+                print("data is empty")
+            }
+            //exiting if there is some error
+            if error != nil{
+                print("error is \(error)")
+                return;
+            }
+            do {
+                let parsedData = try JSONSerialization.jsonObject(with: data!) as! [String:AnyObject]
+                //print("after parsing data \(parsedData)")
+                let userData = parsedData["records"] as! [AnyObject]
+                for user in userData{
+                    feedback_from_module = user["errormsg"] as! String
+                    print("feedback :: \(feedback_from_module)")
+                    
+                }
+                
+                completion(feedback_from_module)
+               // print(feedback_from_module);
+            } catch {
+                print("Error deserializing JSON: \(error)")
+            }
+        }
+        //executing the task
+        task.resume()
+        
     }
  
     
