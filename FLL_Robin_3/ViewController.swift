@@ -19,14 +19,14 @@
  *  (3) Setup call to Pandorabot API under return of transcript from function 'Start Recording' - should be able to use simple REST API calls to the Pandorabot API. Examples of calls with ios @ https://grokswift.com/simple-rest-with-swift/
  *  (4) Fix bug with the motion - doesn't always stop when the phone has stopped and sometimes stops earlier
  *  (5) Generate pretty waveform for when Robin is speaking (use pod? like maybe https://github.com/fulldecent/FDWaveformView or https://github.com/stefanceriu/SCSiriWaveformView ???)
-*/
+ */
 
 /* ISSUE: Currently the speech synthesis is called when the accelerometer detects a motion has stopped. Its called by adding it to the main operation queue. Problem is, it doesn't stop executing it. I think the way I'm triggering stuff to happen on 'motion stop detected' isn't right or there's a better way to do the multi-threading. Secondly, I wanted to turn accelerometer updates OFF when motion stop is detected. However...that's not happening either. All of this starts at line 176
  
-    Getting added to the queue multiple times
+ Getting added to the queue multiple times
  
  google : ios accelerometer motion manager + operationqueue ios swift 3,
-*/
+ */
 
 import UIKit
 import AVFoundation
@@ -36,7 +36,7 @@ import Speech
 
 
 class ViewController: UIViewController, SFSpeechRecognizerDelegate{
-
+    
     // Outlet variables: speaking is a text field that indicates when the robot should be speaking
     // Start button is to trigger the monitoring of motion
     @IBOutlet weak var speaking: UITextField!
@@ -71,7 +71,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     private var recognitionTask: SFSpeechRecognitionTask?
     private let audioEngine = AVAudioEngine()
     
-   
+    
     // When application first starts
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -101,7 +101,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
                 
             case .notDetermined:
                 isButtonEnabled = false
-               // print("Speech recognition not yet authorized")
+                // print("Speech recognition not yet authorized")
             }
             
             OperationQueue.main.addOperation() {
@@ -113,27 +113,57 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         //end of SFSpeechRecognizer.requestAuthorization
         
         /* This section is the original play waveform - will convert text to speech in app so no longer playing waveform
-        let speech = Bundle.main.path(forResource: "Waveform_1", ofType: "mp3")
-        do {
-            audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: speech! ))
-            try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryAmbient)
-            try AVAudioSession.sharedInstance().setActive(true)
-        }
-        catch{
-            print(error)
-        }
-        */
+         let speech = Bundle.main.path(forResource: "Waveform_1", ofType: "mp3")
+         do {
+         audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: speech! ))
+         try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryAmbient)
+         try AVAudioSession.sharedInstance().setActive(true)
+         }
+         catch{
+         print(error)
+         }
+         */
     }
-
+    
     // Action Button: When user clicks on the button, we (1) download text, (2) convert text to speech, (3) begin tracking movement and (4) play the audio when movement ceases
     @IBAction func startButtonClick(_ sender: UIButton) {
         speaking.text = ""                                       // robot not speaking so speaking field is blank
         
-   //     textOfSpeech = getTextOfSpeech()                      // get the text to speech
+        //     textOfSpeech = getTextOfSpeech()                      // get the text to speech
         
-       getTextOfSpeech(completion: {result in
-            print("returned from func :: \(result)")
+        getTextOfSpeech(completion: {result in
+            print("returned from func speak:: \(result)")
             self.textOfSpeech = result
+            
+            //send this to pandorabot and get what to say
+            
+            let urlToRequest = "https://aiaas.pandorabots.com/talk/1409611535153/robinsocial"
+            
+            let url4 = URL(string: urlToRequest)!
+            
+            let session4 = URLSession.shared
+            let request = NSMutableURLRequest(url: url4)
+            request.httpMethod = "POST"
+            request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
+            //
+            let paramString = "input=\(result)&user_key=7d387c332ebfa536b90b7820426ed63b" //setting value obtained from mysql database and get response from that
+            //let paramString = "input=Set name ishrat&user_key=7d387c332ebfa536b90b7820426ed63b" //setting name
+            request.httpBody = paramString.data(using: String.Encoding.utf8)
+            let task = session4.dataTask(with: request as URLRequest) { (data, response, error) in
+                guard let _: Data = data, let _: URLResponse = response, error == nil else {
+                    print("*****error")
+                    return
+                }
+                let dataString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
+                print("*****This is the data from pandorabots: \(dataString)") //JSONSerialization
+            }
+            //TODO: extract the response part
+            //TODO: save result and response both to user log database
+            //TODO: convert response to speech
+            //TODO: make it conversational
+            
+            task.resume()
+            
         })
         
         print("speak this :: \(textOfSpeech)")
@@ -142,13 +172,13 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         //self.synth.speak(self.myUtterance)
         
         //COMMENTING OUT FOR TESTING SPEECH RECOGNITION - add back once confirm speech recognition works
- 
+        
         motionManager.accelerometerUpdateInterval = 0.03         // Motion manager properties - update every 0.03 seconds
         let queue = OperationQueue()
         
         motionManager.startAccelerometerUpdates(to: queue) {    // Start accelerometer
             (data, error) in
-           
+            
             self.outputAccelerationData(acceleration: (data?.acceleration)!)  // enable TalkToRobin button
             
         }
@@ -156,10 +186,10 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         
         // Comment this out once it works
         //TalkToRobinButton.isHidden = false
-
+        
     }
     
-
+    
     // Ths function retrieves the acceleration data and will play audio when motion stop is detected
     func outputAccelerationData(acceleration: CMAcceleration){
         // First time movement is detected, set prior angles
@@ -170,7 +200,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             firstTime = false
         }
         else {
-        
+            
             // Option (1) - Calculating angle differences - not using this to detect movement stop
             let numerator = (lastx * acceleration.x) + (lasty * acceleration.y) + (lastz * acceleration.z)
             let denominator = sqrt(pow(lastx, 2.0)+pow(lasty,2.0)+pow(lastz,2))*sqrt(pow(acceleration.x, 2.0)+pow(acceleration.y,2.0)+pow(acceleration.z,2))
@@ -203,7 +233,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
                         print("I am here to speak :: \(self.textOfSpeech)")
                         self.synth.speak(self.myUtterance)
                         self.TalkToRobinButton.isHidden = false
-
+                        
                         // Cease movement and reset tracking variables
                         self.movingStarted = false
                         self.motionManager.stopAccelerometerUpdates()
@@ -243,53 +273,55 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         
         return answer/Double(angles.count)
     }
-
+    
     // Turn this into a SQL Database call
     //ref link: https://grokswift.com/simple-rest-with-swift/
-   /* func getTextOfSpeech() -> String {
-        let URL_GET = "http://192.168.1.7/api/product/read.php"
-        let requestURL = URL(string: URL_GET)
-        var feedback_from_module = ""
-        //create URL request
-        var request = URLRequest(url: requestURL!)
-        //setting the method to GET
-        request.httpMethod = "GET"
-        //creating a task to send the get request
-        let task = URLSession.shared.dataTask(with: request){
-            data, response, error in
-            //if data is nil or no
-            if(data != nil){
-                print("data is not empty :: \(data)")
-            }else{
-                print("data is empty")
-            }
-            //exiting if there is some error
-            if error != nil{
-                print("error is \(error)")
-                return;
-            }
-            do {
-                let parsedData = try JSONSerialization.jsonObject(with: data!) as! [String:AnyObject]
-                //print("after parsing data \(parsedData)")
-                let userData = parsedData["records"] as! [AnyObject]
-                for user in userData{
-                    feedback_from_module = user["errormsg"] as! String
-                    print("feedback :: \(feedback_from_module)")
-                }
-            } catch {
-                print("Error deserializing JSON: \(error)")
-            }
-        }
-        //executing the task
-        task.resume()
-        
-        return "You are ALL awesome"
-        //return feedback_from_module
-    } */
+    /* func getTextOfSpeech() -> String {
+     let URL_GET = "http://192.168.1.7/api/product/read.php"
+     let requestURL = URL(string: URL_GET)
+     var feedback_from_module = ""
+     //create URL request
+     var request = URLRequest(url: requestURL!)
+     //setting the method to GET
+     request.httpMethod = "GET"
+     //creating a task to send the get request
+     let task = URLSession.shared.dataTask(with: request){
+     data, response, error in
+     //if data is nil or no
+     if(data != nil){
+     print("data is not empty :: \(data)")
+     }else{
+     print("data is empty")
+     }
+     //exiting if there is some error
+     if error != nil{
+     print("error is \(error)")
+     return;
+     }
+     do {
+     let parsedData = try JSONSerialization.jsonObject(with: data!) as! [String:AnyObject]
+     //print("after parsing data \(parsedData)")
+     let userData = parsedData["records"] as! [AnyObject]
+     for user in userData{
+     feedback_from_module = user["errormsg"] as! String
+     print("feedback :: \(feedback_from_module)")
+     }
+     } catch {
+     print("Error deserializing JSON: \(error)")
+     }
+     }
+     //executing the task
+     task.resume()
+     
+     return "You are ALL awesome"
+     
+     } */
     
-   //added completion handler to return data from the database
-     func getTextOfSpeech(completion: @escaping (_ feedback_from_module: String) -> ()) {
-        let URL_GET = "http://192.168.1.7/api/product/read.php"
+    //added completion handler to return data from the database
+    func getTextOfSpeech(completion: @escaping (_ feedback_from_module: String) -> ()) {
+        let URL_GET = "http://192.168.1.7/api/product/read.php" //homes
+        //let URL_GET = "http://10.143.10.102/api/product/read.php" //lab
+        //TODO: get the ip from the database
         let requestURL = URL(string: URL_GET)
         var feedback_from_module=""
         //create URL request
@@ -321,7 +353,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
                 }
                 
                 completion(feedback_from_module)
-               // print(feedback_from_module);
+                // print(feedback_from_module);
             } catch {
                 print("Error deserializing JSON: \(error)")
             }
@@ -330,7 +362,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         task.resume()
         
     }
- 
+    
     
     
     @IBAction func TalkToRobinClick(_ sender: UIButton) {
@@ -387,12 +419,14 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
                 //setting textfield with the speech
                 self.speaking.text = result?.bestTranscription.formattedString
                 isFinal = (result?.isFinal)!
+                print("captured speech :: \(self.speaking.text)")
                 
                 // ******** CALL PANDORABOT API FROM HERE???? Get text of response and then set myutterance and play synthesis function
                 
                 
                 
-              
+                
+                
                 
             }
             
@@ -437,7 +471,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-
+    
+    
 }
 
