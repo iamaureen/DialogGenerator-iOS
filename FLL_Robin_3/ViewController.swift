@@ -135,7 +135,8 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             print("returned from func speak:: \(result)")
             self.textOfSpeech = result
             
-            //send this to pandorabot and get what to say
+            //send this to pandorabot and get what to say 
+            //TODO: make it a functional call with a parameter result
             
             let urlToRequest = "https://aiaas.pandorabots.com/talk/1409611535153/robinsocial"
             
@@ -146,20 +147,39 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             request.httpMethod = "POST"
             request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
             //
-            let paramString = "input=\(result)&user_key=7d387c332ebfa536b90b7820426ed63b" //setting value obtained from mysql database and get response from that
-            //let paramString = "input=Set name ishrat&user_key=7d387c332ebfa536b90b7820426ed63b" //setting name
+            //let paramString = "input=\(result)&user_key=7d387c332ebfa536b90b7820426ed63b" //setting value obtained from mysql database and get response from that
+            let paramString = "input=Set name ishrat&user_key=7d387c332ebfa536b90b7820426ed63b" //setting name
             request.httpBody = paramString.data(using: String.Encoding.utf8)
             let task = session4.dataTask(with: request as URLRequest) { (data, response, error) in
                 guard let _: Data = data, let _: URLResponse = response, error == nil else {
                     print("*****error")
                     return
                 }
-                let dataString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
-                print("*****This is the data from pandorabots: \(dataString)") //JSONSerialization
+//                let dataString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
+//                print("*****This is the data from pandorabots: \(dataString)") //JSONSerialization
+                
+               
+                if let jsonDict = (try? JSONSerialization.jsonObject(with: data!)) as? [String: Any] {
+                    //print("*****This is the data from pandorabots:\(jsonDict)")
+                    if let responses = jsonDict["responses"] as? [String]{
+                        for response in responses {
+                            print("*****This is the data from pandorabots: \(response)")
+                            self.textOfSpeech = response
+                        }
+                    }
+                    else{
+                        print("Unable to parse data")
+                    }
+                }else{
+                    print("Unable to convert object recieved from pandorabot")
+                }
+                
+              
             }
-            //TODO: extract the response part
+            
+            //TODO: extract the response part - done
             //TODO: save result and response both to user log database
-            //TODO: convert response to speech
+            //TODO: convert response to speech - done
             //TODO: make it conversational
             
             task.resume()
@@ -274,48 +294,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         return answer/Double(angles.count)
     }
     
-    // Turn this into a SQL Database call
-    //ref link: https://grokswift.com/simple-rest-with-swift/
-    /* func getTextOfSpeech() -> String {
-     let URL_GET = "http://192.168.1.7/api/product/read.php"
-     let requestURL = URL(string: URL_GET)
-     var feedback_from_module = ""
-     //create URL request
-     var request = URLRequest(url: requestURL!)
-     //setting the method to GET
-     request.httpMethod = "GET"
-     //creating a task to send the get request
-     let task = URLSession.shared.dataTask(with: request){
-     data, response, error in
-     //if data is nil or no
-     if(data != nil){
-     print("data is not empty :: \(data)")
-     }else{
-     print("data is empty")
-     }
-     //exiting if there is some error
-     if error != nil{
-     print("error is \(error)")
-     return;
-     }
-     do {
-     let parsedData = try JSONSerialization.jsonObject(with: data!) as! [String:AnyObject]
-     //print("after parsing data \(parsedData)")
-     let userData = parsedData["records"] as! [AnyObject]
-     for user in userData{
-     feedback_from_module = user["errormsg"] as! String
-     print("feedback :: \(feedback_from_module)")
-     }
-     } catch {
-     print("Error deserializing JSON: \(error)")
-     }
-     }
-     //executing the task
-     task.resume()
-     
-     return "You are ALL awesome"
-     
-     } */
+    
     
     //added completion handler to return data from the database
     func getTextOfSpeech(completion: @escaping (_ feedback_from_module: String) -> ()) {
