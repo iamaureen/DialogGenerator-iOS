@@ -64,6 +64,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     let synth = AVSpeechSynthesizer()
     var myUtterance = AVSpeechUtterance(string: "")
     var textOfSpeech = ""
+    var fromPandorabot = ""
     
     // Speech recognition variables
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale.init(identifier: "en-US"))
@@ -134,59 +135,61 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         getTextOfSpeech(completion: {result in
             print("returned from func speak:: \(result)")
             self.textOfSpeech = result
+            self.fromPandorabot = result
             
-            //send this to pandorabot and get what to say 
-            //TODO: make it a functional call with a parameter result
+            //send this to pandorabot and get what to say
             
-            let urlToRequest = "https://aiaas.pandorabots.com/talk/1409611535153/robinsocial"
-            
-            let url4 = URL(string: urlToRequest)!
-            
-            let session4 = URLSession.shared
-            let request = NSMutableURLRequest(url: url4)
-            request.httpMethod = "POST"
-            request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
-            //
-            //let paramString = "input=\(result)&user_key=7d387c332ebfa536b90b7820426ed63b" //setting value obtained from mysql database and get response from that
-            let paramString = "input=Set name ishrat&user_key=7d387c332ebfa536b90b7820426ed63b" //setting name
-            request.httpBody = paramString.data(using: String.Encoding.utf8)
-            let task = session4.dataTask(with: request as URLRequest) { (data, response, error) in
-                guard let _: Data = data, let _: URLResponse = response, error == nil else {
-                    print("*****error")
-                    return
-                }
-//                let dataString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
-//                print("*****This is the data from pandorabots: \(dataString)") //JSONSerialization
-                
-               
-                if let jsonDict = (try? JSONSerialization.jsonObject(with: data!)) as? [String: Any] {
-                    //print("*****This is the data from pandorabots:\(jsonDict)")
-                    if let responses = jsonDict["responses"] as? [String]{
-                        for response in responses {
-                            print("*****This is the data from pandorabots: \(response)")
-                            self.textOfSpeech = response
-                        }
-                    }
-                    else{
-                        print("Unable to parse data")
-                    }
-                }else{
-                    print("Unable to convert object recieved from pandorabot")
-                }
-                
-              
-            }
-            
-            //TODO: extract the response part - done
-            //TODO: save result and response both to user log database
-            //TODO: convert response to speech - done
-            //TODO: make it conversational
-            
-            task.resume()
+            /*let urlToRequest = "https://aiaas.pandorabots.com/talk/1409611535153/robinsocial"
+             
+             let url4 = URL(string: urlToRequest)!
+             
+             let session4 = URLSession.shared
+             let request = NSMutableURLRequest(url: url4)
+             request.httpMethod = "POST"
+             request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
+             //
+             //let paramString = "input=\(result)&user_key=7d387c332ebfa536b90b7820426ed63b" //setting value obtained from mysql database and get response from that
+             let paramString = "input=Set name ishrat&user_key=7d387c332ebfa536b90b7820426ed63b" //setting name
+             request.httpBody = paramString.data(using: String.Encoding.utf8)
+             let task = session4.dataTask(with: request as URLRequest) { (data, response, error) in
+             guard let _: Data = data, let _: URLResponse = response, error == nil else {
+             print("*****error")
+             return
+             }
+             //                let dataString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
+             //                print("*****This is the data from pandorabots: \(dataString)") //JSONSerialization
+             
+             
+             if let jsonDict = (try? JSONSerialization.jsonObject(with: data!)) as? [String: Any] {
+             //print("*****This is the data from pandorabots:\(jsonDict)")
+             if let responses = jsonDict["responses"] as? [String]{
+             for response in responses {
+             print("*****This is the data from pandorabots: \(response)")
+             self.textOfSpeech = response
+             //post to db here??
+             }
+             }
+             else{
+             print("Unable to parse data")
+             }
+             }else{
+             print("Unable to convert object recieved from pandorabot")
+             }
+             
+             
+             }
+             
+             //TODO: extract the response part - done
+             //TODO: save result and response both to user log database
+             //TODO: convert response to speech - done
+             //TODO: make it conversational
+             //TODO: make it a functional call with a parameter result
+             
+             task.resume()*/
             
         })
         
-        print("speak this :: \(textOfSpeech)")
+        print("speak this :: \(fromPandorabot)")
         
         // Comment this out once if it works
         //self.synth.speak(self.myUtterance)
@@ -246,13 +249,29 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
                         //print("inside oq if(counter>15) counter value:: \(self.counter)")
                         self.counter=0 //here it works fine, why?
                         
-                        // Motion stop detected so play speech and enable talk
-                        self.speaking.text = "Play Audio!"
-                        self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
-                        self.myUtterance.rate = 0.4
-                        print("I am here to speak :: \(self.textOfSpeech)")
-                        self.synth.speak(self.myUtterance)
-                        self.TalkToRobinButton.isHidden = false
+                        //TODO: get data from pandorabot to speak
+                        self.getTextFromPandorabot(completion: {result in
+                            print("returned from func speak:: \(result)")
+                            self.textOfSpeech = result
+                            print("*****This is the data from pandorabots (here): \(self.textOfSpeech)")
+                            
+                            // Motion stop detected so play speech and enable talk
+                            self.speaking.text = "Play Audio!"
+                            self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
+                            self.myUtterance.rate = 0.4
+                            print("I am here to speak :: \(self.textOfSpeech)")
+                            self.synth.speak(self.myUtterance)
+                            self.TalkToRobinButton.isHidden = false
+                            
+                        })
+                        
+//                        // Motion stop detected so play speech and enable talk
+//                        self.speaking.text = "Play Audio!"
+//                        self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
+//                        self.myUtterance.rate = 0.4
+//                        print("I am here to speak :: \(self.textOfSpeech)")
+//                        self.synth.speak(self.myUtterance)
+//                        self.TalkToRobinButton.isHidden = false
                         
                         // Cease movement and reset tracking variables
                         self.movingStarted = false
@@ -300,7 +319,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     func getTextOfSpeech(completion: @escaping (_ feedback_from_module: String) -> ()) {
         let URL_GET = "http://192.168.1.7/api/product/read.php" //homes
         //let URL_GET = "http://10.143.10.102/api/product/read.php" //lab
-        //TODO: get the ip from the database
+        
         let requestURL = URL(string: URL_GET)
         var feedback_from_module=""
         //create URL request
@@ -342,6 +361,66 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         
     }
     
+    //completion: @escaping (_ fromPandorabot: String) -> ()
+    
+    func getTextFromPandorabot(completion: @escaping (_ fromPandorabot: String) -> ()) {
+        
+        print("getTextFromPandorabot")
+        
+        let urlToRequest = "https://aiaas.pandorabots.com/talk/1409611535153/robinsocial"
+        
+        let url4 = URL(string: urlToRequest)!
+        
+        let session4 = URLSession.shared
+        let request = NSMutableURLRequest(url: url4)
+        request.httpMethod = "POST"
+        request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
+        //
+        //let paramString = "input=\(result)&user_key=7d387c332ebfa536b90b7820426ed63b" //setting value obtained from mysql database and get response from that
+        let paramString = "input=Set name ishrat&user_key=7d387c332ebfa536b90b7820426ed63b" //setting name
+        request.httpBody = paramString.data(using: String.Encoding.utf8)
+        let task = session4.dataTask(with: request as URLRequest) { (data, response, error) in
+            guard let _: Data = data, let _: URLResponse = response, error == nil else {
+                print("*****error")
+                return
+            }
+            //                let dataString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
+            //                print("*****This is the data from pandorabots: \(dataString)") //JSONSerialization
+            
+            
+            if let jsonDict = (try? JSONSerialization.jsonObject(with: data!)) as? [String: Any] {
+                //print("*****This is the data from pandorabots:\(jsonDict)")
+                if let responses = jsonDict["responses"] as? [String]{
+                    for response in responses {
+                        print("*****This is the data from pandorabots: \(response)")
+                        self.textOfSpeech = response
+                       
+
+                        //post to db here??
+                        completion(responses[0])
+                        
+                    }
+                }
+                else{
+                    print("Unable to parse data")
+                }
+            }else{
+                print("Unable to convert object recieved from pandorabot")
+            }
+            
+            
+        }
+        
+        //TODO: extract the response part - done
+        //TODO: save result and response both to user log database
+        //TODO: convert response to speech - done
+        //TODO: make it conversational
+        //TODO: make it a functional call with a parameter result
+        //TODO: add completion handler - done
+        
+        task.resume()
+        
+    }
     
     
     @IBAction func TalkToRobinClick(_ sender: UIButton) {
@@ -401,11 +480,6 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
                 print("captured speech :: \(self.speaking.text)")
                 
                 // ******** CALL PANDORABOT API FROM HERE???? Get text of response and then set myutterance and play synthesis function
-                
-                
-                
-                
-                
                 
             }
             
