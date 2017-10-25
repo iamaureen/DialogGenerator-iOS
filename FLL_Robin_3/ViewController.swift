@@ -21,12 +21,7 @@
  *  (5) Generate pretty waveform for when Robin is speaking (use pod? like maybe https://github.com/fulldecent/FDWaveformView or https://github.com/stefanceriu/SCSiriWaveformView ???)
  */
 
-/* ISSUE: Currently the speech synthesis is called when the accelerometer detects a motion has stopped. Its called by adding it to the main operation queue. Problem is, it doesn't stop executing it. I think the way I'm triggering stuff to happen on 'motion stop detected' isn't right or there's a better way to do the multi-threading. Secondly, I wanted to turn accelerometer updates OFF when motion stop is detected. However...that's not happening either. All of this starts at line 176
- 
- Getting added to the queue multiple times
- 
- google : ios accelerometer motion manager + operationqueue ios swift 3,
- */
+
 
 import UIKit
 import AVFoundation
@@ -82,8 +77,8 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         
         speechRecognizer?.delegate = self  //3
         
-        
         SFSpeechRecognizer.requestAuthorization { (authStatus) in  //4
+            
             //https://developer.apple.com/reference/foundation/operationqueue
             var isButtonEnabled = false
             
@@ -128,50 +123,41 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     
     // Action Button: When user clicks on the button, we (1) download text, (2) convert text to speech, (3) begin tracking movement and (4) play the audio when movement ceases
     @IBAction func startButtonClick(_ sender: UIButton) {
+        
+        print("start button clicked")
         speaking.text = ""                                       // robot not speaking so speaking field is blank
         
-        //     textOfSpeech = getTextOfSpeech()                      // get the text to speech
+        //        getTextOfSpeech(completion: {result in
+        //            print("returned from mysql db, send value to pb :: \(result)")
+        //            self.textOfSpeech = result
+        //            self.sendToPandorabot = result
+        //
+        //
+        //        })
         
-        getTextOfSpeech(completion: {result in
-            print("returned from func speak:: \(result)")
-            self.textOfSpeech = result
-            self.sendToPandorabot = result
-             
-             //TODO: extract the response part - done
-             //TODO: save result and response both to user log database
-             //TODO: convert response to speech - done
-             //TODO: make it conversational
-             //TODO: make it a functional call with a parameter result
-            
-            
-        })
-        
-        //print("speak this :: \(fromPandorabot)")
-        
-        // Comment this out once if it works
-        //self.synth.speak(self.myUtterance)
-        
-        //COMMENTING OUT FOR TESTING SPEECH RECOGNITION - add back once confirm speech recognition works
+        self.textOfSpeech = "I cannot do this"
+        self.sendToPandorabot = "I cannot do this"
         
         motionManager.accelerometerUpdateInterval = 0.03         // Motion manager properties - update every 0.03 seconds
+        
         let queue = OperationQueue()
+        
+        //starting updates to push data, the handler closure will be called at frequency given by the update interval
+        //ref: http://nshipster.com/cmdevicemotion/
         
         motionManager.startAccelerometerUpdates(to: queue) {    // Start accelerometer
             (data, error) in
             
-            self.outputAccelerationData(acceleration: (data?.acceleration)!)  // enable TalkToRobin button
-            
+            self.outputAccelerationData(acceleration: (data?.acceleration)!)
         }
-        
-        
-        // Comment this out once it works
-        //TalkToRobinButton.isHidden = false
         
     }
     
     
     // Ths function retrieves the acceleration data and will play audio when motion stop is detected
     func outputAccelerationData(acceleration: CMAcceleration){
+        
+        print("inside outputAccelerationData method")
         // First time movement is detected, set prior angles
         if firstTime {
             lastx = acceleration.x
@@ -180,22 +166,8 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             firstTime = false
         }
         else {
-            
-            // Option (1) - Calculating angle differences - not using this to detect movement stop
-            let numerator = (lastx * acceleration.x) + (lasty * acceleration.y) + (lastz * acceleration.z)
-            let denominator = sqrt(pow(lastx, 2.0)+pow(lasty,2.0)+pow(lastz,2))*sqrt(pow(acceleration.x, 2.0)+pow(acceleration.y,2.0)+pow(acceleration.z,2))
-            let movementAngleAdv = cos(numerator/denominator)
-            lastTenAngles[index] = movementAngleAdv
-            diffFromMean = diffFromMean(angles: self.lastTenAngles)
-            index+=1
-            if index > 9 {
-                index = 0
-            }
-            
-            // Option (2) using differences between current x and prior x - not using this either
-            movementDiff = abs(acceleration.x - lastx)
-            
-            // Option (3) calculate based on current value of x - using this option. If value of x is less than 0.1 for more than 15 counts (.45 seconds) then movement has stopped
+
+            // calculate based on current value of x - using this option. If value of x is less than 0.1 for more than 15 counts (.45 seconds) then movement has stopped
             if (acceleration.x >= 0.1){
                 movingStarted = true
                 counter = 0
@@ -203,38 +175,47 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             else if (movingStarted){
                 if (counter > 15){
                     OperationQueue.main.addOperation {
-                        //print("inside oq if(counter>15) counter value:: \(self.counter)")
-                        self.counter=0 //here it works fine, why?
+                        
+                        self.counter=0
+                        
+                        // Cease movement and reset tracking variables
+                        self.movingStarted = false
+                        self.motionManager.stopAccelerometerUpdates()
                         
                         //get data from pandorabot to speak
-                        print("returned from func speak inside:: \(self.sendToPandorabot)")
+                        print("send to pb :: \(self.sendToPandorabot)")
                         
-                        self.getTextFromPandorabot(self.sendToPandorabot, completion: {result in
-                            print("returned from func speak:: \(result)")
-                            self.textOfSpeech = result
-                            print("*****This is the data from pandorabots (here): \(self.textOfSpeech)")
+                        getTextFromPandorabot(self.sendToPandorabot, completion: {result in
                             
-                            // Motion stop detected so play speech and enable talk
+                            print("returned from pb :: \(result)")
+                            self.textOfSpeech = result
+                            print("*****This is the data from pandorabots (when motion stop is detected): \(self.textOfSpeech)")
+                            
+                            //play speech and enable talk
                             self.speaking.text = "Play Audio!"
                             self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
-                            self.myUtterance.rate = 0.4
-                            print("I am here to speak :: \(self.textOfSpeech)")
+                            self.myUtterance.rate = 0.5
+                            print("I am here to speak :: \(self.myUtterance.speechString)")
                             self.synth.speak(self.myUtterance)
                             self.TalkToRobinButton.isHidden = false
+                            
+                            
+                            
                             
                         })
                         
 //                        // Motion stop detected so play speech and enable talk
 //                        self.speaking.text = "Play Audio!"
+//                        
 //                        self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
-//                        self.myUtterance.rate = 0.4
-//                        print("I am here to speak :: \(self.textOfSpeech)")
+//                        self.myUtterance.rate = 0.5
+//                        //print("I am here to speak :: \(self.textOfSpeech)")
 //                        self.synth.speak(self.myUtterance)
 //                        self.TalkToRobinButton.isHidden = false
-                        
-                        // Cease movement and reset tracking variables
-                        self.movingStarted = false
-                        self.motionManager.stopAccelerometerUpdates()
+//                        
+//                        // Cease movement and reset tracking variables
+//                        self.movingStarted = false
+//                        self.motionManager.stopAccelerometerUpdates()
                         
                         //self.audioPlayer.play()
                         //self.counter=0 //if counter value set to 0 here, it does not work properly
@@ -256,139 +237,52 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         
     }
     
-    // ------- CURRENTLY NOT USING ---------
-    // This function calculates the difference in distance from the past ten recorded angles - if it is within a certain amount, movement will be considered to have 'stopped'
-    func diffFromMean(angles: [Double]) -> Double {
-        var answer = 0.0
-        var sum = 0.0
-        for value in angles[1..<angles.count] {
-            sum = sum+value
-        }
-        let average = sum/Double(angles.count)
-        for value in angles[1..<angles.count] {
-            answer = answer + (value - average)
-        }
-        
-        return answer/Double(angles.count)
-    }
-    
-    
-    
-    //added completion handler to return data from the database
-    func getTextOfSpeech(completion: @escaping (_ feedback_from_module: String) -> ()) {
-        let URL_GET = "http://192.168.1.7/api/product/read.php" //homes
-        //let URL_GET = "http://10.143.10.102/api/product/read.php" //lab
-        
-        let requestURL = URL(string: URL_GET)
-        var feedback_from_module=""
-        //create URL request
-        var request = URLRequest(url: requestURL!)
-        //setting the method to GET
-        request.httpMethod = "GET"
-        //creating a task to send the get request
-        let task = URLSession.shared.dataTask(with: request){
-            (data, response, error) in
-            //if data is nil or no
-            if(data != nil){
-                print("data is not empty :: \(data)")
-            }else{
-                print("data is empty")
-            }
-            //exiting if there is some error
-            if error != nil{
-                print("error is \(error)")
-                return;
-            }
-            do {
-                let parsedData = try JSONSerialization.jsonObject(with: data!) as! [String:AnyObject]
-                //print("after parsing data \(parsedData)")
-                let userData = parsedData["records"] as! [AnyObject]
-                for user in userData{
-                    feedback_from_module = user["errormsg"] as! String
-                    print("feedback :: \(feedback_from_module)")
-                    
-                }
-                
-                completion(feedback_from_module)
-                // print(feedback_from_module);
-            } catch {
-                print("Error deserializing JSON: \(error)")
-            }
-        }
-        //executing the task
-        task.resume()
-        
-    }
-    
-    
-    func getTextFromPandorabot(_ result: String, completion: @escaping (_ fromPandorabot: String) -> ()) {
-        
-        print("getTextFromPandorabot:: \(result)")
-        
-        let urlToRequest = "https://aiaas.pandorabots.com/talk/1409611535153/robinsocial"
-        
-        let url4 = URL(string: urlToRequest)!
-        
-        let session4 = URLSession.shared
-        let request = NSMutableURLRequest(url: url4)
-        request.httpMethod = "POST"
-        request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
-        //
-        let paramString = "input=\(result)&user_key=7d387c332ebfa536b90b7820426ed63b" //setting value obtained from mysql database and get response from that
-        //let paramString = "input=Set name ishrat&user_key=7d387c332ebfa536b90b7820426ed63b" //setting name
-        request.httpBody = paramString.data(using: String.Encoding.utf8)
-        let task = session4.dataTask(with: request as URLRequest) { (data, response, error) in
-            guard let _: Data = data, let _: URLResponse = response, error == nil else {
-                print("*****error")
-                return
-            }
-            //let dataString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
-            //print("*****This is the data from pandorabots: \(dataString)") //JSONSerialization
-            
-            
-            if let jsonDict = (try? JSONSerialization.jsonObject(with: data!)) as? [String: Any] {
-                //print("*****This is the data from pandorabots:\(jsonDict)")
-                if let responses = jsonDict["responses"] as? [String]{
-                    for response in responses {
-                        print("*****This is the data from pandorabots: \(response)")
-                        self.textOfSpeech = response
-                       
-
-                        //post to db here??
-                        completion(responses[0])
-                        
-                    }
-                }
-                else{
-                    print("Unable to parse data")
-                }
-            }else{
-                print("Unable to convert object recieved from pandorabot")
-            }
-            
-            
-        }
-        
-        //TODO: extract the response part - done
-        //TODO: save result and response both to user log database
-        //TODO: convert response to speech - done
-        //TODO: make it conversational
-        //TODO: make it a functional call with a parameter result - done
-        //TODO: add completion handler - done
-        
-        task.resume()
-        
-    }
-    
     
     @IBAction func TalkToRobinClick(_ sender: UIButton) {
         
+        //Stops accelerometer updates
         motionManager.stopAccelerometerUpdates()
+        
         if audioEngine.isRunning {
+            
             audioEngine.stop()
             recognitionRequest?.endAudio()
-            TalkToRobinButton.isEnabled = false
+            
+            let audioSession = AVAudioSession.sharedInstance()
+            do {
+                //            try audioSession.setCategory(AVAudioSessionCategoryPlayAndRecord)
+                //            try audioSession.setMode(AVAudioSessionModeMeasurement)
+                try audioSession.setCategory(AVAudioSessionCategoryPlayback)
+                try audioSession.setMode(AVAudioSessionModeDefault)
+                
+                //try audioSession.setActive(true, with: .notifyOthersOnDeactivation)
+                
+            } catch {
+                print("audioSession properties weren't set because of an error.")
+            }
+            
+            TalkToRobinButton.isEnabled = true
             TalkToRobinButton.setTitle("Start Talking", for: .normal)
+            
+            //
+            getTextFromPandorabot(self.speaking.text!, completion: {result in
+                print("returned from func speak:: \(result)")
+                self.textOfSpeech = result
+                print("*****This is the data from pandorabots (conversation): \(self.textOfSpeech)")
+                
+                // speech captured so play speech and enable talk
+                
+                self.speaking.text = "Play Audio!"
+                self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
+                self.myUtterance.rate = 0.5
+                print("I am here to speak :: \(self.textOfSpeech)")
+                self.synth.speak(self.myUtterance)
+                
+                
+                self.TalkToRobinButton.isHidden = false
+                
+            })
+            
         } else {
             startRecording()
             TalkToRobinButton.setTitle("Stop Talking", for: .normal)
@@ -398,20 +292,9 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     
     func startRecording(){
         
-        
-        
         if recognitionTask != nil {
             recognitionTask?.cancel()
             recognitionTask = nil
-        }
-        
-        let audioSession = AVAudioSession.sharedInstance()
-        do {
-            try audioSession.setCategory(AVAudioSessionCategoryRecord)
-            try audioSession.setMode(AVAudioSessionModeMeasurement)
-            try audioSession.setActive(true, with: .notifyOthersOnDeactivation)
-        } catch {
-            print("audioSession properties weren't set because of an error.")
         }
         
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
@@ -435,10 +318,10 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
                 //setting textfield with the speech
                 self.speaking.text = result?.bestTranscription.formattedString
                 isFinal = (result?.isFinal)!
+                print("isFinal :: \(isFinal)")
                 print("captured speech :: \(self.speaking.text)")
                 
-                // ******** CALL PANDORABOT API FROM HERE???? Get text of response and then set myutterance and play synthesis function
-                
+
             }
             
             if error != nil || isFinal {

@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		8B15A83D1EE74FA2004A3601 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B15A83C1EE74FA2004A3601 /* libsqlite3.tbd */; };
+		8B192CF01F9FBC8E007FF1C6 /* getTextFromPB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B192CEF1F9FBC8E007FF1C6 /* getTextFromPB.swift */; };
+		8B192CF21F9FBE0F007FF1C6 /* getInfoFromDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B192CF11F9FBE0F007FF1C6 /* getInfoFromDatabase.swift */; };
 		8B7AB61E1E9319A5009B1D0C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B7AB61D1E9319A5009B1D0C /* AppDelegate.swift */; };
 		8B7AB6201E9319A5009B1D0C /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B7AB61F1E9319A5009B1D0C /* ViewController.swift */; };
 		8B7AB6231E9319A5009B1D0C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8B7AB6211E9319A5009B1D0C /* Main.storyboard */; };
@@ -19,6 +21,8 @@
 
 /* Begin PBXFileReference section */
 		8B15A83C1EE74FA2004A3601 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		8B192CEF1F9FBC8E007FF1C6 /* getTextFromPB.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = getTextFromPB.swift; sourceTree = "<group>"; };
+		8B192CF11F9FBE0F007FF1C6 /* getInfoFromDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = getInfoFromDatabase.swift; sourceTree = "<group>"; };
 		8B7AB61A1E9319A5009B1D0C /* FLL_Robin_3.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FLL_Robin_3.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B7AB61D1E9319A5009B1D0C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		8B7AB61F1E9319A5009B1D0C /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -78,6 +82,8 @@
 				8B7AB6291E9319A5009B1D0C /* LaunchScreen.storyboard */,
 				8B7AB62C1E9319A5009B1D0C /* Info.plist */,
 				8B7AB6241E9319A5009B1D0C /* FLL_Robin_3.xcdatamodeld */,
+				8B192CEF1F9FBC8E007FF1C6 /* getTextFromPB.swift */,
+				8B192CF11F9FBE0F007FF1C6 /* getInfoFromDatabase.swift */,
 			);
 			path = FLL_Robin_3;
 			sourceTree = "<group>";
@@ -158,6 +164,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				8B7AB6201E9319A5009B1D0C /* ViewController.swift in Sources */,
+				8B192CF01F9FBC8E007FF1C6 /* getTextFromPB.swift in Sources */,
+				8B192CF21F9FBE0F007FF1C6 /* getInfoFromDatabase.swift in Sources */,
 				8B7AB6261E9319A5009B1D0C /* FLL_Robin_3.xcdatamodeld in Sources */,
 				8B7AB61E1E9319A5009B1D0C /* AppDelegate.swift in Sources */,
 			);

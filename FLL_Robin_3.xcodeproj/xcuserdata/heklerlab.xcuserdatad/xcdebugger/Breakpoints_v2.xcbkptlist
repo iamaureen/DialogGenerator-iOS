@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FLL_Robin_3/ViewController.swift"
-            timestampString = "529906885.766692"
+            timestampString = "530609212.12918"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "160"
-            endingLineNumber = "160"
+            startingLineNumber = "149"
+            endingLineNumber = "149"
             landmarkName = "startButtonClick(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -26,11 +26,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FLL_Robin_3/ViewController.swift"
-            timestampString = "529906885.766692"
+            timestampString = "530609212.12918"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "180"
-            endingLineNumber = "180"
+            startingLineNumber = "166"
+            endingLineNumber = "166"
             landmarkName = "outputAccelerationData(acceleration:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -66,47 +66,47 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FLL_Robin_3/ViewController.swift"
-            timestampString = "529906885.766692"
+            timestampString = "530610576.035392"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "312"
-            endingLineNumber = "312"
-            landmarkName = "getTextOfSpeech(completion:)"
+            startingLineNumber = "306"
+            endingLineNumber = "306"
+            landmarkName = "startRecording()"
             landmarkType = "7">
             <Locations>
                <Location
-                  shouldBeEnabled = "Yes"
+                  shouldBeEnabled = "No"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "FLL_Robin_3.ViewController.(getTextOfSpeech (completion : (Swift.String) -&gt; ()) -&gt; ()).(closure #1)"
+                  symbolName = "FLL_Robin_3.ViewController.(startRecording () -&gt; ()).(closure #1)"
                   moduleName = "FLL_Robin_3"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/heklerlab/Desktop/FLL_Robin_3/FLL_Robin_3/ViewController.swift"
-                  timestampString = "529834364.948686"
+                  timestampString = "530479970.588335"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "343"
-                  endingLineNumber = "343"
-                  offsetFromSymbolStart = "3448">
+                  startingLineNumber = "428"
+                  endingLineNumber = "428"
+                  offsetFromSymbolStart = "1956">
                </Location>
                <Location
-                  shouldBeEnabled = "Yes"
+                  shouldBeEnabled = "No"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "FLL_Robin_3.ViewController.(getTextOfSpeech (completion : (Swift.String) -&gt; ()) -&gt; ()).(closure #1)"
+                  symbolName = "FLL_Robin_3.ViewController.(startRecording () -&gt; ()).(closure #1).(closure #1)"
                   moduleName = "FLL_Robin_3"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/heklerlab/Desktop/FLL_Robin_3/FLL_Robin_3/ViewController.swift"
-                  timestampString = "529834364.952284"
+                  timestampString = "530479970.591326"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "343"
-                  endingLineNumber = "343"
-                  offsetFromSymbolStart = "3852">
+                  startingLineNumber = "429"
+                  endingLineNumber = "429"
+                  offsetFromSymbolStart = "32">
                </Location>
             </Locations>
          </BreakpointContent>
