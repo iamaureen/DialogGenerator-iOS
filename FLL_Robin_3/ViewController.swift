@@ -72,6 +72,21 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            // only 'try audioSession.setCategory(AVAudioSessionCategoryPlayAndRecord)' causes the voice to be very low. so
+            //the following line is used, source: https://stackoverflow.com/questions/36115497/avaudioengine-low-volume
+            try audioSession.setCategory(AVAudioSessionCategoryPlayAndRecord, with:AVAudioSessionCategoryOptions.defaultToSpeaker)
+            try audioSession.setMode(AVAudioSessionModeMeasurement)
+            //try audioSession.setCategory(AVAudioSessionCategoryPlayback)
+            //try audioSession.setMode(AVAudioSessionModeDefault)
+            
+            //try audioSession.setActive(true, with: .notifyOthersOnDeactivation)
+            
+        } catch {
+            print("audioSession properties weren't set because of an error.")
+        }
+        
         // Get user permission to use microphone
         TalkToRobinButton.isEnabled = false  //2
         
@@ -191,34 +206,23 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
                             self.textOfSpeech = result
                             print("*****This is the data from pandorabots (when motion stop is detected): \(self.textOfSpeech)")
                             
-                            //play speech and enable talk
-                            self.speaking.text = "Play Audio!"
-                            self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
-                            self.myUtterance.rate = 0.5
-                            print("I am here to speak :: \(self.myUtterance.speechString)")
-                            self.synth.speak(self.myUtterance)
-                            self.TalkToRobinButton.isHidden = false
                             
+                            //source: https://stackoverflow.com/questions/33138331/terminating-app-due-to-an-uncaught-exception-nsinternalinconsistencyexception
+                            DispatchQueue.main.async(){
+                                
+                                //play speech and enable talk
+                                self.speaking.text = "Play Audio!"
+                                self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
+                                //self.myUtterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+                                self.myUtterance.rate = 0.5
+                                print("I am here to speak :: \(self.myUtterance.speechString)")
+                                self.synth.speak(self.myUtterance)
+                                self.TalkToRobinButton.isHidden = false
+                            }
                             
                             
                             
                         })
-                        
-//                        // Motion stop detected so play speech and enable talk
-//                        self.speaking.text = "Play Audio!"
-//                        
-//                        self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
-//                        self.myUtterance.rate = 0.5
-//                        //print("I am here to speak :: \(self.textOfSpeech)")
-//                        self.synth.speak(self.myUtterance)
-//                        self.TalkToRobinButton.isHidden = false
-//                        
-//                        // Cease movement and reset tracking variables
-//                        self.movingStarted = false
-//                        self.motionManager.stopAccelerometerUpdates()
-                        
-                        //self.audioPlayer.play()
-                        //self.counter=0 //if counter value set to 0 here, it does not work properly
                         
                     }
                 }
@@ -248,19 +252,6 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             audioEngine.stop()
             recognitionRequest?.endAudio()
             
-            let audioSession = AVAudioSession.sharedInstance()
-            do {
-                //            try audioSession.setCategory(AVAudioSessionCategoryPlayAndRecord)
-                //            try audioSession.setMode(AVAudioSessionModeMeasurement)
-                try audioSession.setCategory(AVAudioSessionCategoryPlayback)
-                try audioSession.setMode(AVAudioSessionModeDefault)
-                
-                //try audioSession.setActive(true, with: .notifyOthersOnDeactivation)
-                
-            } catch {
-                print("audioSession properties weren't set because of an error.")
-            }
-            
             TalkToRobinButton.isEnabled = true
             TalkToRobinButton.setTitle("Start Talking", for: .normal)
             
@@ -271,13 +262,15 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
                 print("*****This is the data from pandorabots (conversation): \(self.textOfSpeech)")
                 
                 // speech captured so play speech and enable talk
+                DispatchQueue.main.async(){
                 
-                self.speaking.text = "Play Audio!"
-                self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
-                self.myUtterance.rate = 0.5
-                print("I am here to speak :: \(self.textOfSpeech)")
-                self.synth.speak(self.myUtterance)
-                
+                    self.speaking.text = "Play Audio!"
+                    self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
+                    self.myUtterance.rate = 0.5
+                    print("I am here to speak :: \(self.textOfSpeech)")
+                    self.synth.speak(self.myUtterance)
+                    
+                }
                 
                 self.TalkToRobinButton.isHidden = false
                 
@@ -326,7 +319,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             
             if error != nil || isFinal {
                 self.audioEngine.stop()
-                inputNode.removeTap(onBus: 0)
+                self.audioEngine.inputNode?.removeTap(onBus: 0)
                 
                 self.recognitionRequest = nil
                 self.recognitionTask = nil
@@ -336,8 +329,8 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
         })
         
         let recordingFormat = inputNode.outputFormat(forBus: 0)
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer, when) in
-            self.recognitionRequest?.append(buffer)
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] (buffer, _) in
+            self?.recognitionRequest?.append(buffer)
         }
         
         audioEngine.prepare()
