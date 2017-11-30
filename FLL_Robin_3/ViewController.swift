@@ -50,10 +50,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     var index = 0
     var counter = 0
     var firstTime = true
-    var movementDiff = 0.0
-    var diffFromMean = 0.0
     var movingStarted = false
-    var databasePath:String!
     
     // Text to speech variables
     let synth = AVSpeechSynthesizer()
@@ -78,16 +75,12 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             //the following line is used, source: https://stackoverflow.com/questions/36115497/avaudioengine-low-volume
             try audioSession.setCategory(AVAudioSessionCategoryPlayAndRecord, with:AVAudioSessionCategoryOptions.defaultToSpeaker)
             try audioSession.setMode(AVAudioSessionModeMeasurement)
-            //try audioSession.setCategory(AVAudioSessionCategoryPlayback)
-            //try audioSession.setMode(AVAudioSessionModeDefault)
-            
-            //try audioSession.setActive(true, with: .notifyOthersOnDeactivation)
             
         } catch {
             print("audioSession properties weren't set because of an error.")
         }
         
-        // Get user permission to use microphone
+        
         TalkToRobinButton.isEnabled = false  //2
         
         speechRecognizer?.delegate = self  //3
@@ -181,7 +174,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             firstTime = false
         }
         else {
-
+            
             // calculate based on current value of x - using this option. If value of x is less than 0.1 for more than 15 counts (.45 seconds) then movement has stopped
             if (acceleration.x >= 0.1){
                 movingStarted = true
@@ -191,11 +184,16 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
                 if (counter > 15){
                     OperationQueue.main.addOperation {
                         
+                        print("inside outputAccelerationData method x:: \(acceleration.x), y :: \(acceleration.y), z :: \(acceleration.z)")
+                        
                         self.counter=0
                         
                         // Cease movement and reset tracking variables
                         self.movingStarted = false
                         self.motionManager.stopAccelerometerUpdates()
+                        
+                        //stop the click event of button
+                        self.startButton.isUserInteractionEnabled = false;
                         
                         //get data from pandorabot to speak
                         print("send to pb :: \(self.sendToPandorabot)")
@@ -213,7 +211,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
                                 //play speech and enable talk
                                 self.speaking.text = "Play Audio!"
                                 self.myUtterance = AVSpeechUtterance(string: self.textOfSpeech)
-                                //self.myUtterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+                                
                                 self.myUtterance.rate = 0.5
                                 print("I am here to speak :: \(self.myUtterance.speechString)")
                                 self.synth.speak(self.myUtterance)
@@ -243,6 +241,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
     
     
     @IBAction func TalkToRobinClick(_ sender: UIButton) {
+        
         
         //Stops accelerometer updates
         motionManager.stopAccelerometerUpdates()
@@ -320,10 +319,8 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate{
             if error != nil || isFinal {
                 self.audioEngine.stop()
                 self.audioEngine.inputNode?.removeTap(onBus: 0)
-                
                 self.recognitionRequest = nil
                 self.recognitionTask = nil
-                
                 self.TalkToRobinButton.isEnabled = true
             }
         })
